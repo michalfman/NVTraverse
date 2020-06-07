@@ -21,20 +21,52 @@
 
 //std::ofstream file;
 
-static void FLUSH(void *p)
+inline void FLUSH(void *p)
 {
-    asm volatile ("clflush (%0)" :: "r"(p));
+#ifdef PWB_IS_CLFLUSH
+  asm volatile ("clflush (%0)" :: "r"(p));
+#elif PWB_IS_CLFLUSHOPT
+  asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)(p)));    // clflushopt (Kaby Lake)
+#elif PWB_IS_CLWB
+  asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)(p)));  // clwb() only for Ice Lake onwards
+#else
+#error "You must define what PWB is. Choose PWB_IS_CLFLUSH if you don't know what your CPU is capable of"
+#endif
 }
 
-static void FLUSH(volatile void *p)
-{   
-    asm volatile ("clflush (%0)" :: "r"(p));
+inline void FLUSH(volatile void *p)
+{
+#ifdef PWB_IS_CLFLUSH
+  asm volatile ("clflush (%0)" :: "r"(p));
+#elif PWB_IS_CLFLUSHOPT
+  asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)(p)));    // clflushopt (Kaby Lake)
+#elif PWB_IS_CLWB
+  asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)(p)));  // clwb() only for Ice Lake onwards
+#else
+#error "You must define what PWB is. Choose PWB_IS_CLFLUSH if you don't know what your CPU is capable of"
+#endif
 }
 
-
-static void SFENCE()
+inline void SFENCE()
 {
     asm volatile ("sfence" ::: "memory");
+}
+
+inline void FENCE()
+{
+#ifdef PMEM_STATS
+  fence_count[tid*PMEM_STATS_PADDING]++;
+#endif
+
+#ifdef PWB_IS_CLFLUSH
+  //MFENCE();
+#elif PWB_IS_CLFLUSHOPT
+  SFENCE();
+#elif PWB_IS_CLWB
+  SFENCE();
+#else
+#error "You must define what PWB is. Choose PWB_IS_CLFLUSH if you don't know what your CPU is capable of"
+#endif
 }
 
 /*

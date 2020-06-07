@@ -84,15 +84,15 @@ template <class ET>
 		flush_count[tid*PMEM_STATS_PADDING]++;
 	#endif
 
-//	#ifdef PWB_IS_CLFLUSH
+	#ifdef PWB_IS_CLFLUSH
 		asm volatile ("clflush (%0)" :: "r"(p));
-//	#elif PWB_IS_CLFLUSHOPT
-//	    asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)(p)));    // clflushopt (Kaby Lake)
-//	#elif PWB_IS_CLWB
-//	    asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)(p)));  // clwb() only for Ice Lake onwards
-//	#else
-//	#error "You must define what PWB is. Choose PWB_IS_CLFLUSH if you don't know what your CPU is capable of"
-//	#endif
+	#elif PWB_IS_CLFLUSHOPT
+	    asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)(p)));    // clflushopt (Kaby Lake)
+	#elif PWB_IS_CLWB
+	    asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)(p)));  // clwb() only for Ice Lake onwards
+	#else
+	#error "You must define what PWB is. Choose PWB_IS_CLFLUSH if you don't know what your CPU is capable of"
+	#endif
 	}
 
 // assumes that ptr + size will not go out of the struct

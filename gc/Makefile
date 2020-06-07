@@ -13,7 +13,7 @@ UNAME := $(shell uname -n)
 all: libssmem.a
 
 ssmem.o: ./ssmem.c 
-	g++ $(VER_FLAGS) -c ./ssmem.c $(CFLAGS) $(IFLAGS)
+	g++ $(VER_FLAGS) $(FLUSHFLAG) -c ./ssmem.c $(CFLAGS) $(IFLAGS)
 
 libssmem.a: ssmem.o ssmem.h
 	@echo Archive name = libssmem.a
